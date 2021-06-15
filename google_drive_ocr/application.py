@@ -75,7 +75,7 @@ class GoogleOCRApplication:
     Perform OCR using Google-Drive API v3
     """
     client_secret: str = attr.ib()
-    upload_folder_id: str = attr.ib(default='root')
+    upload_folder_id: str = attr.ib(default=None)
     ocr_suffix: str = attr.ib(default='.google.txt')
     temporary_upload: bool = attr.ib(default=False)
 
@@ -87,6 +87,8 @@ class GoogleOCRApplication:
             self.credentials_path = os.path.join(
                 os.path.expanduser('~'), '.credentials', 'token.json'
             )
+        if self.upload_folder_id is None:
+            self.upload_folder_id = 'root'
         creds = self.get_credentials()
         self.drive_service = build('drive', 'v3', credentials=creds)
 
