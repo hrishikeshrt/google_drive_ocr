@@ -201,8 +201,6 @@ class GoogleOCRApplication:
             output_path = self.get_output_path(img_path)
 
         if os.path.isfile(output_path):
-            import random
-            time.sleep(random.random() * 2)
             return Status.ALREADY
 
         try:
