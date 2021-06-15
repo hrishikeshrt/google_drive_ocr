@@ -17,6 +17,7 @@ requirements = [
     'attrs==21.2.0',
     'natsort==7.0.1',
     'pdf2image==1.15.1',
+    'ConfigArgParse==1.4.1'
 ]
 
 test_requirements = ['pytest>=3', ]

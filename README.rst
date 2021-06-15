@@ -27,7 +27,7 @@ Usage
 To use :code:`google_drive_ocr` in a project::
 
     from google_drive_ocr.application import GoogleOCRApplication
-    app = GoogleOCRApplication('Google OCR', 'client_secrets.json')
+    app = GoogleOCRApplication('client_secret.json')
     # Single image
     app.perform_ocr('image.png')
     # Multiple images
@@ -37,6 +37,20 @@ To use :code:`google_drive_ocr` in a project::
 
 To use :code:`google_drive_ocr` from command line::
 
+    google-ocr --client-secret client_secret.json \
+    --upload-folder-id <google-drive-folder-id>  \
+    --image-dir images/ --extension .jpg \
+    --workers 4 --no-keep
+
+    # Save configuration and exit
+    # If configuration is written to ~/.gdo.cfg, we don't have to specify those
+    # options again on the subsequent runs
+    google-ocr --client-secret client_secret.json --write-config ~/.gdo.cfg
+
+    # Read configuration from a custom location (if it was written to a custom location)
+    google-ocr --config ~/.my_config_file ..
+
+    # Examples (assuming client-secret is saved in configuration file)
     # Single image
     google-ocr -i image.png
 
@@ -65,12 +79,10 @@ Create a project on Google Cloud Platform
 
 **Instructions**:
 
-    * https://developers.google.com/drive/v3/web/quickstart/go
     * https://cloud.google.com/genomics/downloading-credentials-for-api-access
-
-* Select application type as "Installed Application"
-* Create credentials OAuth consent screen --> OAuth client ID
-* Save :code:`client_secret.json`
+    * Select application type as "Installed Application"
+    * Create credentials OAuth consent screen --> OAuth client ID
+    * Save :code:`client_secret.json`
 
 Features
 --------

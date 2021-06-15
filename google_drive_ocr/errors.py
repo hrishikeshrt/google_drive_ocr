@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Jun 14 23:07:57 2021
+HTTP Errors
 
-@author: Hrishikesh Terdalkar
+List of HTTP errors which can be fixed in most cases by trying again
+Provides a `@retry` decorator which applies exponential backoff to a function
 """
 
 import math

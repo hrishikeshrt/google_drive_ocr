@@ -6,12 +6,11 @@ Console script for Google OCR (Drive API v3)
 
 ###############################################################################
 
-import os
 import sys
-import stat
 import time
 import logging
-import argparse
+
+import configargparse
 
 ###############################################################################
 
@@ -36,27 +35,33 @@ def main():
         batch = None
         image_dir = None
 
-        name = None
         client_secret = None
         upload_folder_id = None
 
-        extension = '.png'
-        no_keep = False
-        workers = 1
-
     # ----------------------------------------------------------------------- #
 
-    p = argparse.ArgumentParser(description="Google OCR using Drive API v3")
-    p.add_argument("-s", "--client-secret", help='Path to client secret file')
+    p = configargparse.ArgumentParser(
+        default_config_files=['~/.gdo.cfg'],
+        auto_env_var_prefix="GDO_",
+        description="Google OCR using Drive API v3",
+        args_for_setting_config_path=["-c", "--config"],
+        config_arg_help_message="Read configuration from file",
+        args_for_writing_out_config_file=["-w", "--write-config"],
+        write_out_config_file_arg_help_message="Write configuration file"
+    )
+    p.add_argument("--client-secret", required=True,
+                   help='Path to client secret file')
     p.add_argument("-i", "--image", help='Path to a single image file')
     p.add_argument("-b", "--batch", nargs='+', help='Paths image files')
-    p.add_argument("--image-dir", help='Path to image directory')
-    p.add_argument("--extension", help="Extension to look in image directory")
+    p.add_argument("-d", "--image-dir", help='Path to image directory')
+    p.add_argument("--extension", default='.png',
+                   help="Extension to look in image directory")
+    p.add_argument("--upload-folder-id",
+                   help='Google Drive folder id to upload files')
+    p.add_argument("--workers", type=int, default=1,
+                   help="Number of workers (multiprocessing)")
     p.add_argument("--no-keep", action='store_true',
                    help="Delete file from Google Drive after OCR is performed")
-    p.add_argument("--workers", type=int,
-                   help="Number of workers (multiprocessing)")
-    p.add_argument("--name", help='Application Name')
     p.add_argument("--verbose", action='store_true', help="Verbose output")
     p.add_argument("--debug", action='store_true', help="Debug mode")
     p.add_argument("--version", action='version',
@@ -82,75 +87,14 @@ def main():
         p.print_help()
         sys.exit(1)
 
-    # -----------------------------------------------------------
-    # Config
-    # TODO: Better Configuration
-
-    config = {}
-    home_dir = os.path.expanduser('~')
-    config_file = os.path.join(home_dir, '.gdo.cfg')
-
-    if os.path.isfile(config_file):
-        with open(config_file) as f:
-            lines = f.read().split('\n')
-            for line in lines:
-                if line.strip():
-                    key, value = line.split('=')
-                    config[key.strip()] = value.strip()
-
-    name = (
-        Config.name or
-        os.environ.get('GDOCR_NAME') or
-        config.get('name')
-    )
-
-    client_secret = (
-        Config.client_secret or
-        os.environ.get('GDOCR_CLIENT_SECRET') or
-        config.get('client_secret')
-    )
-
-    upload_folder_id = (
-        Config.upload_folder_id or
-        os.environ.get('GDOCR_UPLOAD_FOLDER_ID') or
-        config.get('upload_folder_id')
-    )
-
-    manual = not (name and client_secret and upload_folder_id)
-
-    if not name:
-        name = input('Application Name: ').strip()
-        config['name'] = name
-    if not client_secret:
-        client_secret = input('Client-Secrets File: ').strip()
-        config['client_secret'] = client_secret
-    if not upload_folder_id:
-        upload_folder_id = input(
-            "Upload Folder ID: (Default: 'root'): "
-        ).strip()
-        if not upload_folder_id:
-            upload_folder_id = 'root'
-        config['upload_folder_id'] = upload_folder_id
-
     # ----------------------------------------------------------------------- #
     # Create Application Instance
 
     app = GoogleOCRApplication(
-        name=name,
-        client_secret=client_secret,
-        upload_folder_id=upload_folder_id,
+        client_secret=Config.client_secret,
+        upload_folder_id=Config.upload_folder_id,
         temporary_upload=Config.no_keep
     )
-
-    if manual:
-        answer = input("Save configuration? (Y/n) ")
-        if not answer or answer.lower()[0] == 'y':
-            with open(config_file, 'w') as f:
-                f.write(
-                    '\n'.join([' = '.join((k, v)) for k, v in config.items()])
-                )
-            logging.info("Configuration saved!")
-            os.chmod(config_file, stat.S_IREAD + stat.S_IWRITE)
 
     # ----------------------------------------------------------------------- #
     # Single image file

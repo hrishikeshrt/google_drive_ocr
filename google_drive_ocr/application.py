@@ -8,17 +8,14 @@ Create a project on Google Cloud Platform
 
 Wizard: https://console.developers.google.com/start/api?id=drive
 Instructions:
-    - Select application type as "Installed Application"
-    - https://developers.google.com/drive/v3/web/quickstart/go
     - https://cloud.google.com/genomics/downloading-credentials-for-api-access
-
-- Create credentials OAuth consent screen --> OAuth client ID
-- Save client_secret.json
+    - Select application type as "Installed Application"
+    - Create credentials OAuth consent screen --> OAuth client ID
+    - Save client_secret.json
 
 References
 ----------
 
-* https://developers.google.com/api-client-library/python/
 * https://developers.google.com/api-client-library/python/start/get_started
 * https://developers.google.com/drive/v3/reference/
 * https://developers.google.com/drive/v3/web/quickstart/python
@@ -77,7 +74,6 @@ class GoogleOCRApplication:
 
     Perform OCR using Google-Drive API v3
     """
-    name: str = attr.ib()
     client_secret: str = attr.ib()
     upload_folder_id: str = attr.ib(default='root')
     ocr_suffix: str = attr.ib(default='.google.txt')
