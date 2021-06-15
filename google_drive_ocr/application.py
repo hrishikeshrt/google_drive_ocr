@@ -102,7 +102,7 @@ class GoogleOCRApplication:
         If no (valid) credentials are available, log the user in and store
         the credentials for future use
         """
-        if self.credentials_path:
+        if os.path.isfile(self.credentials_path):
             creds = Credentials.from_authorized_user_file(
                 self.credentials_path, SCOPES
             )
