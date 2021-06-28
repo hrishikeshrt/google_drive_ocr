@@ -42,6 +42,9 @@ To use **Google OCR (Drive API v3)** from command line::
     # Multiple images using multiprocessing
     google-ocr -b image_1.png image_2.png image_3.png --workers 2
 
+    # PDF files
+    google-ocr --pdf document.pdf --pages 1-3 5 7-10 13
+
     # For more detailed Usage
     google-ocr --help
 

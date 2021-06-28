@@ -63,12 +63,15 @@ To use :code:`google_drive_ocr` from command line::
     # Multiple images using multiprocessing
     google-ocr -b image_1.png image_2.png image_3.png --workers 2
 
+    # PDF files
+    google-ocr --pdf document.pdf --pages 1-3 5 7-10 13
+
     # For more detailed Usage
     google-ocr --help
 
 
 **Note**:
-You must setup a Google application and download :code:`client_secrets.json` file before using `google_drive_ocr`.
+You must setup a Google application and download :code:`client_secrets.json` file before using :code:`google_drive_ocr`.
 
 Setup Instructions
 ------------------
@@ -89,6 +92,9 @@ Features
 
 * Perform OCR using Google's Drive API v3
 * Single, Batch and Parallel OCR
+* Work on a PDF document directly
+* Highly configurable CLI
+* :code:`GoogleOCRApplication` class usable in a project
 
 Credits
 -------
