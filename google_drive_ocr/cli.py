@@ -6,6 +6,7 @@ Console script for Google OCR (Drive API v3)
 
 ###############################################################################
 
+import re
 import sys
 import time
 import logging
@@ -16,7 +17,7 @@ import configargparse
 
 from . import __version__
 from .application import GoogleOCRApplication
-from .utils import get_files
+from .utils import get_files, extract_pages
 
 ###############################################################################
 
@@ -34,7 +35,9 @@ def main():
         image = None
         batch = None
         image_dir = None
+        pdf = None
 
+        pages = None
         client_secret = None
         upload_folder_id = None
 
@@ -54,10 +57,13 @@ def main():
     p.add_argument("-i", "--image", help='Path to a single image file')
     p.add_argument("-b", "--batch", nargs='+', help='Paths image files')
     p.add_argument("-d", "--image-dir", help='Path to image directory')
-    p.add_argument("--extension", default='.png',
+    p.add_argument("-x", "--extension", default='.png',
                    help="Extension to look in image directory")
+    p.add_argument("--pdf", help='Path to PDF file')
+    p.add_argument("--pages", nargs='*',
+                   help="Pages from PDF to extract and OCR")
     p.add_argument("--upload-folder-id",
-                   help='Google Drive folder id to upload files')
+                   help='Google Drive folder id to upload files to')
     p.add_argument("--workers", type=int, default=1,
                    help="Number of workers (multiprocessing)")
     p.add_argument("--no-keep", action='store_true',
@@ -86,7 +92,8 @@ def main():
     if (
         Config.image is None and
         Config.batch is None and
-        Config.image_dir is None
+        Config.image_dir is None and
+        Config.pdf is None
     ):
         p.print_help()
         sys.exit(1)
@@ -124,6 +131,21 @@ def main():
     # Find images from a directory
     if Config.image_dir is not None:
         image_files = get_files(Config.image_dir, Config.extension)
+
+    # Extract pages from a PDF file
+    if Config.pdf is not None:
+        if Config.pages is not None:
+            pages = []
+            for page in Config.pages:
+                if page.isdigit():
+                    pages.append(int(page))
+
+                m = re.match(r'^(\d+)-(\d+)$', page)
+                if m:
+                    pages.extend(range(int(m.group(1)), int(m.group(2)) + 1))
+        else:
+            pages = None
+        image_files = extract_pages(Config.pdf, pages=pages)
 
     if image_files:
         app.perform_ocr_batch(image_files, workers=Config.workers)
