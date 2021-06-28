@@ -90,10 +90,10 @@ def main():
     # ----------------------------------------------------------------------- #
 
     if (
-        Config.image is None and
-        Config.batch is None and
-        Config.image_dir is None and
-        Config.pdf is None
+        Config.image is None
+        and Config.batch is None
+        and Config.image_dir is None
+        and Config.pdf is None
     ):
         p.print_help()
         sys.exit(1)
@@ -116,7 +116,7 @@ def main():
         t_finish = time.time()
         print(f"{status.value} ({t_finish-t_start:.4f} seconds)")
         output_path = app.get_output_path(Config.image)
-        with open(output_path, 'r') as f:
+        with open(output_path, "r", encoding="utf-8") as f:
             print(f.read())
         sys.exit(0)
 
