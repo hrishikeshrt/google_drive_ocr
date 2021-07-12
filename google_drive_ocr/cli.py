@@ -77,11 +77,13 @@ def main():
 
     # ----------------------------------------------------------------------- #
 
-    if Config.verbose:
-        root_logger.setLevel(logging.INFO)
-
+    disable_tqdm = True
     if Config.debug:
         root_logger.setLevel(logging.DEBUG)
+    elif Config.verbose:
+        root_logger.setLevel(logging.INFO)
+    else:
+        disable_tqdm = False
 
     # ----------------------------------------------------------------------- #
 
@@ -96,7 +98,7 @@ def main():
         and Config.pdf is None
     ):
         p.print_help()
-        sys.exit(1)
+        return 1
 
     # ----------------------------------------------------------------------- #
     # Create Application Instance
@@ -118,7 +120,7 @@ def main():
         output_path = app.get_output_path(Config.image)
         with open(output_path, "r", encoding="utf-8") as f:
             print(f.read())
-        sys.exit(0)
+        return 0
 
     # ----------------------------------------------------------------------- #
     # Multiple images
@@ -148,8 +150,14 @@ def main():
         image_files = extract_pages(Config.pdf, pages=pages)
 
     if image_files:
-        app.perform_ocr_batch(image_files, workers=Config.workers)
+        app.perform_ocr_batch(
+            image_files,
+            workers=Config.workers,
+            disable_tqdm=disable_tqdm
+        )
+        return 0
 
+    return 1
 
 ###############################################################################
 

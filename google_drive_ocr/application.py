@@ -224,13 +224,15 @@ class GoogleOCRApplication:
         process = mp.current_process()
         worker_id = worker_arguments['worker_id']
         image_files = worker_arguments['image_files']
+        disable_tqdm = worker_arguments.get('disable_tqdm')
         logger.info(f"Process started. (PID: {process.pid})")
         t_start = time.time()
         with logging_redirect_tqdm():
             for image_file in tqdm(
                 natsorted(image_files),
                 desc=f"(PID:{process.pid})",
-                position=worker_id
+                position=worker_id,
+                disable=disable_tqdm
             ):
                 status = self.perform_ocr(image_file)
                 if status == Status.ERROR:
@@ -241,7 +243,7 @@ class GoogleOCRApplication:
         logger.info(f"Process complete. (PID: {process.pid})")
         return t_total
 
-    def perform_ocr_batch(self, image_files, workers=1):
+    def perform_ocr_batch(self, image_files, workers=1, disable_tqdm=None):
         '''Perform OCR on multiple files'''
         image_files = natsorted(image_files)
         file_count = len(image_files)
@@ -261,7 +263,8 @@ class GoogleOCRApplication:
             _workload = workload + (idx < extra)
             worker_arguments.append({
                 'worker_id': idx,
-                'image_files': image_files[_start:_start+_workload]
+                'image_files': image_files[_start:_start+_workload],
+                'disable_tqdm': disable_tqdm
             })
             _start = _start + _workload
 
