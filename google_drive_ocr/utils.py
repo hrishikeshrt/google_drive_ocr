@@ -82,6 +82,7 @@ def extract_pages(pdf_path, pages=None):
         logger.info(f"Extracting {len(pages)} pages from '{pdf_path}' ..")
         ranges = list_to_range(pages)
     else:
+        logger.info(f"Extracting all pages from '{pdf_path}' ..")
         ranges = [(None, None)]
 
     paths = set()
@@ -97,7 +98,10 @@ def extract_pages(pdf_path, pages=None):
             paths_only=True,
         )
         paths.update(_paths)
-        logger.info(f"Extracted pages: {_start} to {_end}.")
+        if _start is not None and _end is not None:
+            logger.info(f"Extracted {len(_paths)} pages: {_start} to {_end}.")
+        else:
+            logger.info(f"Extracted {len(_paths)} pages.")
     return paths
 
 

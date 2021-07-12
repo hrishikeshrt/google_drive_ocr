@@ -248,27 +248,22 @@ class GoogleOCRApplication:
 
         t_start = time.time()
 
+        workload = file_count // workers
         if workers > 1:
-            workload = round(file_count / workers)
             print(f"Total {file_count} files "
                   f"distributed among {workers} workers.")
-            print(f"Workload: {workload} per worker")
-        else:
-            workload = file_count
+            print(f"Workload: {workload}-{workload + 1} per worker")
+            extra = file_count % workers
 
         worker_arguments = []
+        _start = 0
         for idx in range(workers):
-            start = workload * idx
-            if idx < (workers - 1):
-                worker_arguments.append({
-                    'worker_id': idx,
-                    'image_files': image_files[start:start+workload]
-                })
-            else:
-                worker_arguments.append({
-                    'worker_id': idx,
-                    'image_files': image_files[start:]
-                })
+            _workload = workload + (idx < extra)
+            worker_arguments.append({
+                'worker_id': idx,
+                'image_files': image_files[_start:_start+_workload]
+            })
+            _start = _start + _workload
 
         # ------------------------------------------------------------------- #
 
