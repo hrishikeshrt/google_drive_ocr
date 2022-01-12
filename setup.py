@@ -11,13 +11,13 @@ with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
 requirements = [
-    'google_api_python_client==2.9.0',
-    'google_auth_oauthlib==0.4.1',
-    'tqdm==4.60.0',
-    'attrs==21.2.0',
-    'natsort==7.0.1',
-    'pdf2image==1.15.1',
-    'ConfigArgParse==1.4.1'
+    'google_api_python_client>=2.9.0',
+    'google_auth_oauthlib>=0.4.1',
+    'tqdm>=4.60.0',
+    'attrs>=21.2.0',
+    'natsort>=7.0.1',
+    'pdf2image>=1.15.1',
+    'ConfigArgParse>=1.4.1'
 ]
 
 test_requirements = ['pytest>=3', ]
