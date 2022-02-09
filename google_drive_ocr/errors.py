@@ -2,9 +2,10 @@
 # -*- coding: utf-8 -*-
 """
 HTTP Errors
+===========
 
-List of HTTP errors which can be fixed in most cases by trying again
-Provides a `@retry` decorator which applies exponential backoff to a function
+List of HTTP errors that can be fixed in most cases by trying again.
+Provides a `@retry` decorator which applies exponential backoff to a function.
 """
 
 import math
@@ -42,19 +43,27 @@ RETRY_ERRORS = {
 ###############################################################################
 
 
-def retry(attempts=4, delay=1, backoff=2, hook=None):
+def retry(attempts: int = 4, delay: int = 1, backoff: int = 2, hook=None):
     """
     Decorator to Retry with Exponential Backoff (on Exception)
 
     A function that raises an exception on failure, when decorated with this
     decorator, will retry till it returns True or number of attempts runs out.
 
-    @params:
-        delay: initial delay in seconds
-        backoff: backoff multiplication factor
-        hook: function with the signature
-              hook(tries_remaining, exception, delay)
-              (default: None)
+    Parameters
+    ----------
+    attempts : int, optional
+        Number of attempts in case of failure.
+        The default is 4.
+    delay : int, optional
+        Intinitial delay in seconds
+        The default is 1.
+    backoff : int, optional
+        Backoff multiplication factor
+        The default is 2.
+    hook : function, optional
+        Function with the signature hook(tries_remaining, exception, delay)
+        The default is None.
 
     The decorator will call the function up to 'attempts' times if it raises
     an exception.
@@ -69,7 +78,23 @@ def retry(attempts=4, delay=1, backoff=2, hook=None):
     to retrying with the number of remaining tries and the exception instance;
     This is primarily intended to give the opportunity to log the failure.
     Hook is not called after failure if no retries remain.
+
+
+    Returns
+    -------
+    [type]
+        [description]
+
+    Raises
+    ------
+    ValueError
+        If the `backoff` multiplication factor is less than 1.
+    ValueError
+        If the number of `attempts` is less than 0.
+    ValueError
+        If the initial `delay` is less than or equal to 0.
     """
+
     if backoff <= 1:
         raise ValueError("Backoff must be greater than 1")
     attempts = math.floor(attempts)

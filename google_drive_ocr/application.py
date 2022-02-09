@@ -2,16 +2,19 @@
 # -*- coding: utf-8 -*-
 """
 Google OCR Application
+======================
 
 Create a project on Google Cloud Platform
 -----------------------------------------
 
 Wizard: https://console.developers.google.com/start/api?id=drive
-Instructions:
-    - https://cloud.google.com/genomics/downloading-credentials-for-api-access
-    - Select application type as "Installed Application"
-    - Create credentials OAuth consent screen --> OAuth client ID
-    - Save client_secret.json
+
+**Instructions**:
+
+* https://cloud.google.com/genomics/downloading-credentials-for-api-access
+* Select application type as "Installed Application"
+* Create credentials OAuth consent screen --> OAuth client ID
+* Save client_secret.json
 
 References
 ----------

@@ -47,7 +47,7 @@ Usage
 
 Use :code:`google_drive_ocr` in a project:
 
-.. code-block::python
+.. code-block:: python
 
     from google_drive_ocr.application import GoogleOCRApplication
     app = GoogleOCRApplication('client_secret.json')
@@ -60,7 +60,7 @@ Use :code:`google_drive_ocr` in a project:
 
 Use :code:`google_drive_ocr` from command line:
 
-.. code-block::console
+.. code-block:: console
 
     google-ocr --client-secret client_secret.json \
     --upload-folder-id <google-drive-folder-id>  \

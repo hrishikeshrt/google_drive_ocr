@@ -1,9 +1,13 @@
-"""Top-level package for Google OCR (Drive API v3)."""
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""Google OCR (Drive API v3)."""
 
-from .application import GoogleOCRApplication
+###############################################################################
 
 __author__ = """Hrishikesh Terdalkar"""
 __email__ = 'hrishikeshrt@linuxmail.org'
 __version__ = '0.2.3'
 
-__all__ = [GoogleOCRApplication]
+###############################################################################
+
+from .application import GoogleOCRApplication  # noqa
