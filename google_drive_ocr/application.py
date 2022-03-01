@@ -251,14 +251,14 @@ class GoogleOCRApplication:
         image_files = natsorted(image_files)
         file_count = len(image_files)
 
-        t_start = time.time()
+        t_start = time.perf_counter()
 
         workload = file_count // workers
+        extra = file_count % workers
         if workers > 1:
             print(f"Total {file_count} files "
                   f"distributed among {workers} workers.")
             print(f"Workload: {workload}-{workload + 1} per worker")
-            extra = file_count % workers
 
         worker_arguments = []
         _start = 0
@@ -284,7 +284,7 @@ class GoogleOCRApplication:
 
         # ------------------------------------------------------------------- #
 
-        t_final = time.time()
+        t_final = time.perf_counter()
         t_total = t_final - t_start
         tqdm.write(f"Total Time Taken: {t_total:.2f} seconds")
         if workers > 1:
