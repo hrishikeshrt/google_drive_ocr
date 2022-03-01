@@ -253,8 +253,7 @@ class GoogleOCRApplication:
 
         t_start = time.perf_counter()
 
-        workload = file_count // workers
-        extra = file_count % workers
+        workload, extra = divmod(file_count, workers)
         if workers > 1:
             print(f"Total {file_count} files "
                   f"distributed among {workers} workers.")
