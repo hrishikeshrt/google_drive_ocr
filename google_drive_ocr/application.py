@@ -34,8 +34,8 @@ import enum
 import logging
 import mimetypes
 import multiprocessing as mp
+from dataclasses import dataclass, field
 
-import attr
 from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 from natsort import natsorted
@@ -53,7 +53,7 @@ from .errors import retry
 
 ###############################################################################
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 ###############################################################################
 
@@ -70,22 +70,25 @@ class Status(enum.Enum):
 ###############################################################################
 
 
-@attr.s
+@dataclass
 class GoogleOCRApplication:
     """
     Google OCR Application
 
     Perform OCR using Google-Drive API v3
     """
-    client_secret: str = attr.ib()
-    upload_folder_id: str = attr.ib(default=None)
-    ocr_suffix: str = attr.ib(default=".google.txt")
-    temporary_upload: bool = attr.ib(default=False)
+    client_secret: str
+    upload_folder_id: str = field(default=None)
+    ocr_suffix: str = field(default=".google.txt")
+    temporary_upload: bool = field(default=False)
 
-    credentials_path: str = attr.ib(default=None, repr=False)
-    scopes: str = attr.ib(default=SCOPES)
+    credentials_path: str = field(default=None, repr=False)
+    scopes: str = field(default=None)
 
-    def __attrs_post_init__(self):
+    def __post_init__(self):
+        if self.scopes is None:
+            self.scopes = SCOPES
+
         if self.credentials_path is None:
             self.credentials_path = os.path.join(
                 os.path.expanduser("~"), ".credentials", "token.json"
@@ -107,7 +110,7 @@ class GoogleOCRApplication:
         """
         if os.path.isfile(self.credentials_path):
             creds = Credentials.from_authorized_user_file(
-                self.credentials_path, SCOPES
+                self.credentials_path, self.scopes
             )
         else:
             credential_dir = os.path.dirname(self.credentials_path)
@@ -125,7 +128,7 @@ class GoogleOCRApplication:
                 )
                 creds = flow.run_local_server(port=0)
             # Save the credentials for the next run
-            logger.info(f"Storing credentials to {self.credentials_path}")
+            LOGGER.info(f"Storing credentials to {self.credentials_path}")
             with open(self.credentials_path, "w") as token:
                 token.write(creds.to_json())
 
@@ -141,7 +144,7 @@ class GoogleOCRApplication:
         mimetype, _encoding = mimetypes.guess_type(img_path)
 
         if mimetype is None:
-            logger.warning("MIME type of the image could not be inferred.")
+            LOGGER.warning("MIME type of the image could not be inferred.")
             mimetype = "image/png"
 
         file_metadata = {
@@ -156,7 +159,7 @@ class GoogleOCRApplication:
         ).execute()
         file_id = file.get("id")
         file_name = file.get("name")
-        logger.info(f"File uploaded: '{file_name}' (id: '{file_id}')")
+        LOGGER.info(f"File uploaded: '{file_name}' (id: '{file_id}')")
         return file_id
 
     @retry()
@@ -170,13 +173,13 @@ class GoogleOCRApplication:
         done = False
         while done is False:
             status, done = downloader.next_chunk()
-        logger.info(f"Document downloaded: '{output_path}'.")
+        LOGGER.info(f"Document downloaded: '{output_path}'.")
 
     @retry()
     def delete_file(self, file_id):
         """Delete a file from Google Drive"""
         self.drive_service.files().delete(fileId=file_id).execute()
-        logger.info(f"File '{file_id}' deleted from Google Drive.")
+        LOGGER.info(f"File '{file_id}' deleted from Google Drive.")
 
     def perform_ocr(self, img_path, output_path=None):
         """
@@ -214,10 +217,10 @@ class GoogleOCRApplication:
                 if self.temporary_upload:
                     self.delete_file(file_id)
             else:
-                logger.error(f"Could not upload '{img_path}'.")
+                LOGGER.error(f"Could not upload '{img_path}'.")
                 return Status.ERROR
         except Exception:
-            logger.exception("An error occurred while performing OCR.")
+            LOGGER.exception("An error occurred while performing OCR.")
             return Status.ERROR
 
         return Status.SUCCESS
@@ -228,7 +231,7 @@ class GoogleOCRApplication:
         worker_id = worker_arguments["worker_id"]
         image_files = worker_arguments["image_files"]
         disable_tqdm = worker_arguments.get("disable_tqdm")
-        logger.info(f"Process started. (PID: {process.pid})")
+        LOGGER.info(f"Process started. (PID: {process.pid})")
         t_start = time.time()
         with logging_redirect_tqdm():
             for image_file in tqdm(
@@ -239,11 +242,11 @@ class GoogleOCRApplication:
             ):
                 status = self.perform_ocr(image_file)
                 if status == Status.ERROR:
-                    logger.info(f"{status.value} ('{image_file}')")
+                    LOGGER.info(f"{status.value} ('{image_file}')")
 
         t_finish = time.time()
         t_total = (t_finish - t_start)
-        logger.info(f"Process complete. (PID: {process.pid})")
+        LOGGER.info(f"Process complete. (PID: {process.pid})")
         return t_total
 
     def perform_ocr_batch(self, image_files, workers=1, disable_tqdm=None):
