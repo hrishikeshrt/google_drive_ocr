@@ -35,10 +35,13 @@ Features
 ========
 
 * Perform OCR using Google's Drive API v3
-* Single, Batch and Parallel OCR
-* Work on a PDF document directly
+* Class :code:`GoogleOCRApplication()` for use in projects
 * Highly configurable CLI
-* :code:`GoogleOCRApplication` class usable in a project
+* Run OCR on a single image file
+* Run OCR on multiple image files
+* Run OCR on all images in directory
+* Use multiple workers (:code:`multiprocessing`)
+* Work on a PDF document directly
 
 
 .. toctree::
