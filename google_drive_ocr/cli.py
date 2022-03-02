@@ -21,8 +21,8 @@ from .utils import get_files, extract_pages
 
 ###############################################################################
 
-root_logger = logging.getLogger()
-root_logger.addHandler(logging.StreamHandler())
+ROOT_LOGGER = logging.getLogger()
+ROOT_LOGGER.hasHandlers() or ROOT_LOGGER.addHandler(logging.StreamHandler())
 
 ###############################################################################
 
@@ -35,11 +35,19 @@ def main():
         image = None
         batch = None
         image_dir = None
+        output = None
+        extension = ".png"
+        suffix = ".google.txt"
         pdf = None
 
         pages = None
         client_secret = None
         upload_folder_id = None
+
+        workers = 1
+        no_keep = False
+        verbose = False
+        debug = False
 
     # ----------------------------------------------------------------------- #
 
@@ -57,14 +65,17 @@ def main():
     p.add_argument("-i", "--image", help="Path to a single image file")
     p.add_argument("-b", "--batch", nargs="+", help="Paths image files")
     p.add_argument("-d", "--image-dir", help="Path to image directory")
-    p.add_argument("-x", "--extension", default=".png",
+    p.add_argument("-o", "--output",
+                   help="Path to output file (only valid with `-i`)")
+    p.add_argument("-x", "--extension",
                    help="Extension to look in image directory")
+    p.add_argument("-s", "--suffix", help="Suffix for the output files")
     p.add_argument("--pdf", help="Path to PDF file")
     p.add_argument("--pages", nargs="*",
                    help="Pages from PDF to extract and OCR")
     p.add_argument("--upload-folder-id",
                    help="Google Drive folder id to upload files to")
-    p.add_argument("--workers", type=int, default=1,
+    p.add_argument("--workers", type=int,
                    help="Number of workers (multiprocessing)")
     p.add_argument("--no-keep", action="store_true",
                    help="Delete file from Google Drive after OCR is performed")
@@ -79,15 +90,15 @@ def main():
 
     disable_tqdm = True
     if Config.debug:
-        root_logger.setLevel(logging.DEBUG)
+        ROOT_LOGGER.setLevel(logging.DEBUG)
     elif Config.verbose:
-        root_logger.setLevel(logging.INFO)
+        ROOT_LOGGER.setLevel(logging.INFO)
     else:
         disable_tqdm = False
 
     # ----------------------------------------------------------------------- #
 
-    root_logger.debug(Config.__dict__)
+    ROOT_LOGGER.debug(Config.__dict__)
 
     # ----------------------------------------------------------------------- #
 
@@ -106,18 +117,25 @@ def main():
     app = GoogleOCRApplication(
         client_secret=Config.client_secret,
         upload_folder_id=Config.upload_folder_id,
-        temporary_upload=Config.no_keep
+        temporary_upload=Config.no_keep,
+        ocr_suffix=Config.suffix
     )
 
     # ----------------------------------------------------------------------- #
     # Single image file
 
     if Config.image is not None:
-        t_start = time.time()
-        status = app.perform_ocr(Config.image)
-        t_finish = time.time()
+        t_start = time.perf_counter()
+        output_path = (
+            app.get_output_path(Config.image)
+            if Config.output is None
+            else Config.output
+        )
+
+        status = app.perform_ocr(Config.image, output_path=output_path)
+        t_finish = time.perf_counter()
         print(f"{status.value} ({t_finish-t_start:.4f} seconds)")
-        output_path = app.get_output_path(Config.image)
+
         with open(output_path, "r", encoding="utf-8") as f:
             print(f.read())
         return 0
