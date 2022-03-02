@@ -65,12 +65,12 @@ def retry(attempts: int = 4, delay: int = 1, backoff: int = 2, hook=None):
         Function with the signature hook(tries_remaining, exception, delay)
         The default is None.
 
-    The decorator will call the function up to 'attempts' times if it raises
+    The decorator will call the function up to `attempts` times if it raises
     an exception.
 
     By default it catches instances of the Exception class and subclasses.
     This will recover after all but the most fatal errors. You may specify a
-    custom tuple of exception classes with the 'exceptions' argument; the
+    custom tuple of exception classes with the `exceptions` argument; the
     function will only be retried if it raises one of the specified
     exceptions.
 

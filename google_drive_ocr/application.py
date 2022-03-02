@@ -57,7 +57,7 @@ logger = logging.getLogger(__name__)
 
 ###############################################################################
 
-SCOPES = ['https://www.googleapis.com/auth/drive']
+SCOPES = ["https://www.googleapis.com/auth/drive"]
 
 ###############################################################################
 
@@ -79,7 +79,7 @@ class GoogleOCRApplication:
     """
     client_secret: str = attr.ib()
     upload_folder_id: str = attr.ib(default=None)
-    ocr_suffix: str = attr.ib(default='.google.txt')
+    ocr_suffix: str = attr.ib(default=".google.txt")
     temporary_upload: bool = attr.ib(default=False)
 
     credentials_path: str = attr.ib(default=None, repr=False)
@@ -88,16 +88,16 @@ class GoogleOCRApplication:
     def __attrs_post_init__(self):
         if self.credentials_path is None:
             self.credentials_path = os.path.join(
-                os.path.expanduser('~'), '.credentials', 'token.json'
+                os.path.expanduser("~"), ".credentials", "token.json"
             )
         if self.upload_folder_id is None:
-            self.upload_folder_id = 'root'
+            self.upload_folder_id = "root"
         creds = self.get_credentials()
-        self.drive_service = build('drive', 'v3', credentials=creds)
+        self.drive_service = build("drive", "v3", credentials=creds)
 
     def get_output_path(self, img_path):
         _img_path, _ = os.path.splitext(img_path)
-        return f'{_img_path}{self.ocr_suffix}'
+        return f"{_img_path}{self.ocr_suffix}"
 
     def get_credentials(self):
         """Get valid user credentials
@@ -125,8 +125,8 @@ class GoogleOCRApplication:
                 )
                 creds = flow.run_local_server(port=0)
             # Save the credentials for the next run
-            logger.info(f'Storing credentials to {self.credentials_path}')
-            with open(self.credentials_path, 'w') as token:
+            logger.info(f"Storing credentials to {self.credentials_path}")
+            with open(self.credentials_path, "w") as token:
                 token.write(creds.to_json())
 
         return creds
@@ -136,36 +136,36 @@ class GoogleOCRApplication:
 
     @retry()
     def upload_image_as_document(self, img_path):
-        '''Upload an image file as a Google Document'''
+        """Upload an image file as a Google Document"""
         img_filename = os.path.basename(img_path)
         mimetype, _encoding = mimetypes.guess_type(img_path)
 
         if mimetype is None:
             logger.warning("MIME type of the image could not be inferred.")
-            mimetype = 'image/png'
+            mimetype = "image/png"
 
         file_metadata = {
-            'name': img_filename,
-            'mimeType': 'application/vnd.google-apps.document',
-            'parents': [self.upload_folder_id],
+            "name": img_filename,
+            "mimeType": "application/vnd.google-apps.document",
+            "parents": [self.upload_folder_id],
         }
 
         media = MediaFileUpload(img_path, mimetype=mimetype)
         file = self.drive_service.files().create(
-            body=file_metadata, media_body=media, fields='id, name'
+            body=file_metadata, media_body=media, fields="id, name"
         ).execute()
-        file_id = file.get('id')
-        file_name = file.get('name')
+        file_id = file.get("id")
+        file_name = file.get("name")
         logger.info(f"File uploaded: '{file_name}' (id: '{file_id}')")
         return file_id
 
     @retry()
     def download_document_as_text(self, file_id, output_path):
-        '''Download a Google Document as text'''
+        """Download a Google Document as text"""
         request = self.drive_service.files().export_media(
-            fileId=file_id, mimeType='text/plain'
+            fileId=file_id, mimeType="text/plain"
         )
-        fh = io.FileIO(output_path, 'wb')
+        fh = io.FileIO(output_path, "wb")
         downloader = MediaIoBaseDownload(fh, request)
         done = False
         while done is False:
@@ -174,12 +174,12 @@ class GoogleOCRApplication:
 
     @retry()
     def delete_file(self, file_id):
-        '''Delete a file from Google Drive'''
+        """Delete a file from Google Drive"""
         self.drive_service.files().delete(fileId=file_id).execute()
         logger.info(f"File '{file_id}' deleted from Google Drive.")
 
     def perform_ocr(self, img_path, output_path=None):
-        '''
+        """
         Perform OCR on a single image
 
         * Upload the image to Google Drive as google-document
@@ -199,7 +199,7 @@ class GoogleOCRApplication:
         -------
         status: Status
             Status of the OCR operation
-        '''
+        """
         if output_path is None:
             output_path = self.get_output_path(img_path)
 
@@ -223,11 +223,11 @@ class GoogleOCRApplication:
         return Status.SUCCESS
 
     def _worker_ocr_batch(self, worker_arguments):
-        '''Perform OCR on multiple files'''
+        """Perform OCR on multiple files"""
         process = mp.current_process()
-        worker_id = worker_arguments['worker_id']
-        image_files = worker_arguments['image_files']
-        disable_tqdm = worker_arguments.get('disable_tqdm')
+        worker_id = worker_arguments["worker_id"]
+        image_files = worker_arguments["image_files"]
+        disable_tqdm = worker_arguments.get("disable_tqdm")
         logger.info(f"Process started. (PID: {process.pid})")
         t_start = time.time()
         with logging_redirect_tqdm():
@@ -247,7 +247,7 @@ class GoogleOCRApplication:
         return t_total
 
     def perform_ocr_batch(self, image_files, workers=1, disable_tqdm=None):
-        '''Perform OCR on multiple files'''
+        """Perform OCR on multiple files"""
         image_files = natsorted(image_files)
         file_count = len(image_files)
 
@@ -264,9 +264,9 @@ class GoogleOCRApplication:
         for idx in range(workers):
             _workload = workload + (idx < extra)
             worker_arguments.append({
-                'worker_id': idx,
-                'image_files': image_files[_start:_start+_workload],
-                'disable_tqdm': disable_tqdm
+                "worker_id": idx,
+                "image_files": image_files[_start:_start+_workload],
+                "disable_tqdm": disable_tqdm
             })
             _start = _start + _workload
 

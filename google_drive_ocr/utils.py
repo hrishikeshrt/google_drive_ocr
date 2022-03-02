@@ -20,12 +20,12 @@ logger = logging.getLogger(__name__)
 
 def get_files(topdir, extn):
     """
-    Search topdir recursively for all files with extension 'extn'
+    Search topdir recursively for all files with extension "extn"
 
-    extension is checked with endswith() call, instead of the supposedly better
-    os.path.splitext(), in order to facilitate the search with multiple '.'
+    extension is checked with `endswith()`, instead of the supposedly better
+    `os.path.splitext()`, in order to facilitate the search with multiple "."
     i.e.
-    >>> get_files(topdir, '.xyz.txt')
+    >>> get_files(topdir, ".xyz.txt")
     works as expected which wouldn't have if splitext() was used.
     """
     return (

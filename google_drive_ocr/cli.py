@@ -44,7 +44,7 @@ def main():
     # ----------------------------------------------------------------------- #
 
     p = configargparse.ArgumentParser(
-        default_config_files=['~/.gdo.cfg'],
+        default_config_files=["~/.gdo.cfg"],
         auto_env_var_prefix="GDO_",
         description="Google OCR using Drive API v3",
         args_for_setting_config_path=["-c", "--config"],
@@ -53,25 +53,25 @@ def main():
         write_out_config_file_arg_help_message="Write configuration file"
     )
     p.add_argument("--client-secret", required=True,
-                   help='Path to client secret file')
-    p.add_argument("-i", "--image", help='Path to a single image file')
-    p.add_argument("-b", "--batch", nargs='+', help='Paths image files')
-    p.add_argument("-d", "--image-dir", help='Path to image directory')
-    p.add_argument("-x", "--extension", default='.png',
+                   help="Path to client secret file")
+    p.add_argument("-i", "--image", help="Path to a single image file")
+    p.add_argument("-b", "--batch", nargs="+", help="Paths image files")
+    p.add_argument("-d", "--image-dir", help="Path to image directory")
+    p.add_argument("-x", "--extension", default=".png",
                    help="Extension to look in image directory")
-    p.add_argument("--pdf", help='Path to PDF file')
-    p.add_argument("--pages", nargs='*',
+    p.add_argument("--pdf", help="Path to PDF file")
+    p.add_argument("--pages", nargs="*",
                    help="Pages from PDF to extract and OCR")
     p.add_argument("--upload-folder-id",
-                   help='Google Drive folder id to upload files to')
+                   help="Google Drive folder id to upload files to")
     p.add_argument("--workers", type=int, default=1,
                    help="Number of workers (multiprocessing)")
-    p.add_argument("--no-keep", action='store_true',
+    p.add_argument("--no-keep", action="store_true",
                    help="Delete file from Google Drive after OCR is performed")
-    p.add_argument("--verbose", action='store_true', help="Verbose output")
-    p.add_argument("--debug", action='store_true', help="Debug mode")
-    p.add_argument("--version", action='version',
-                   version=f'%(prog)s {__version__}')
+    p.add_argument("--verbose", action="store_true", help="Verbose output")
+    p.add_argument("--debug", action="store_true", help="Debug mode")
+    p.add_argument("--version", action="version",
+                   version=f"%(prog)s {__version__}")
 
     p.parse_args(namespace=Config)
 
@@ -142,7 +142,7 @@ def main():
                 if page.isdigit():
                     pages.append(int(page))
 
-                m = re.match(r'^(\d+)-(\d+)$', page)
+                m = re.match(r"^(\d+)-(\d+)$", page)
                 if m:
                     pages.extend(range(int(m.group(1)), int(m.group(2)) + 1))
         else:
