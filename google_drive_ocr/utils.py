@@ -7,26 +7,41 @@ Utility Functions
 import os
 import logging
 from collections.abc import Iterable
+from typing import Generator, Iterator, List, Set, Tuple
 
 from pdf2image import convert_from_path
 from pdf2image.generators import threadsafe
 
 ###############################################################################
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 ###############################################################################
 
 
-def get_files(topdir, extn):
+def get_files(topdir: str, extn: str) -> Generator[str, None, None]:
     """
-    Search topdir recursively for all files with extension "extn"
+    Search :code:`topdir` recursively for all files with extension :code:`extn`
 
-    extension is checked with `endswith()`, instead of the supposedly better
-    `os.path.splitext()`, in order to facilitate the search with multiple "."
+    extension is checked with :code:`str.endswith()`, instead of the supposedly
+    better :code:`os.path.splitext()`, in order to facilitate the search with
+    multiple dots in the :code:`extn`
+
     i.e.
-    >>> get_files(topdir, ".xyz.txt")
-    works as expected which wouldn't have if splitext() was used.
+    :code:`>>> get_files(topdir, ".xyz.txt")`
+    wouldn't have worked as expected if :code:`splitext()` was used.
+
+    Parameters
+    ----------
+    topdir : str
+        Path of the directory to search files in
+    extn : str
+        Extension to look for
+
+    Returns
+    -------
+    Generator[str, None, None]
+        Matching file paths
     """
     return (
         os.path.join(dirpath, name)
@@ -40,7 +55,21 @@ def get_files(topdir, extn):
 # PDF Utils
 
 
-def list_to_range(list_of_int):
+def list_to_range(list_of_int: List[int]) -> List[Tuple[int, int]]:
+    """Convert a list of integers into a list of ranges
+
+    A range is tuple (start, end)
+
+    Parameters
+    ----------
+    list_of_int : List[int]
+        List of integers
+
+    Returns
+    -------
+    List[Tuple[int, int]]
+        List of ranges
+    """
     ranges = []
     start, end = None, None
     last = None
@@ -69,20 +98,38 @@ def static_generator(prefix):
         yield prefix
 
 
-def extract_pages(pdf_path, pages=None):
-    """Extract pages from a PDF file
+def extract_pages(
+    pdf_path: str,
+    pages: Iterator[Tuple[int, int]] = None
+) -> Set[str]:
+    """Extract pages from a PDF file as image files
 
-    Pages are saved beside the PDF file with
+    Pages are saved in the same directory as the PDF file,
+    with the suffix :code:`.page-[number].jpg`
+
+    Parameters
+    ----------
+    pdf_path : str
+        Path to the PDF file
+    pages : Iterator[Tuple[int, int]], optional
+        Page ranges to extract.
+        If None, all pages will be extracted.
+        The default is None.
+
+    Returns
+    -------
+    Set[str]
+        Set of paths to extracted pages
     """
     pdf_path = os.path.realpath(pdf_path)
     output_path = os.path.dirname(pdf_path)
     output_name, _ = os.path.splitext(os.path.basename(pdf_path))
 
     if isinstance(pages, Iterable):
-        logger.info(f"Extracting {len(pages)} pages from '{pdf_path}' ..")
+        LOGGER.info(f"Extracting {len(pages)} pages from '{pdf_path}' ..")
         ranges = list_to_range(pages)
     else:
-        logger.info(f"Extracting all pages from '{pdf_path}' ..")
+        LOGGER.info(f"Extracting all pages from '{pdf_path}' ..")
         ranges = [(None, None)]
 
     paths = set()
@@ -99,9 +146,9 @@ def extract_pages(pdf_path, pages=None):
         )
         paths.update(_paths)
         if _start is not None and _end is not None:
-            logger.info(f"Extracted {len(_paths)} pages: {_start} to {_end}.")
+            LOGGER.info(f"Extracted {len(_paths)} pages: {_start} to {_end}.")
         else:
-            logger.info(f"Extracted {len(_paths)} pages.")
+            LOGGER.info(f"Extracted {len(_paths)} pages.")
     return paths
 
 

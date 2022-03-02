@@ -5,7 +5,9 @@ HTTP Errors
 ===========
 
 List of HTTP errors that can be fixed in most cases by trying again.
-Provides a `@retry` decorator which applies exponential backoff to a function.
+
+Provides a :code:`@retry` decorator, which applies exponential backoff
+to a function.
 """
 
 import math
@@ -13,6 +15,7 @@ import time
 import random
 import logging
 import functools
+from typing import Any, Callable
 
 from googleapiclient.errors import HttpError
 
@@ -43,12 +46,31 @@ RETRY_ERRORS = {
 ###############################################################################
 
 
-def retry(attempts: int = 4, delay: int = 1, backoff: int = 2, hook=None):
+def retry(
+    attempts: int = 4,
+    delay: int = 1,
+    backoff: int = 2,
+    hook: Callable[[int, Exception, int], Any] = None
+) -> Callable:
     """
     Decorator to Retry with Exponential Backoff (on Exception)
 
     A function that raises an exception on failure, when decorated with this
     decorator, will retry till it returns True or number of attempts runs out.
+
+    The decorator will call the function up to :code:`attempts` times if it
+    raises an exception.
+
+    By default it catches instances of the Exception class and subclasses.
+    This will recover after all but the most fatal errors. You may specify a
+    custom tuple of exception classes with the :code:`exceptions` argument;
+    the function will only be retried if it raises one of the specified
+    exceptions.
+
+    Additionally you may specify a hook function which will be called prior
+    to retrying with the number of remaining tries and the exception instance;
+    This is primarily intended to give the opportunity to log the failure.
+    Hook is not called after failure if no retries remain.
 
     Parameters
     ----------
@@ -61,38 +83,23 @@ def retry(attempts: int = 4, delay: int = 1, backoff: int = 2, hook=None):
     backoff : int, optional
         Backoff multiplication factor
         The default is 2.
-    hook : function, optional
-        Function with the signature hook(tries_remaining, exception, delay)
+    hook : Callable[[int, Exception, int], Any], optional
+        Function with the parameters `(tries_remaining, exception, delay)`
         The default is None.
-
-    The decorator will call the function up to `attempts` times if it raises
-    an exception.
-
-    By default it catches instances of the Exception class and subclasses.
-    This will recover after all but the most fatal errors. You may specify a
-    custom tuple of exception classes with the `exceptions` argument; the
-    function will only be retried if it raises one of the specified
-    exceptions.
-
-    Additionally you may specify a hook function which will be called prior
-    to retrying with the number of remaining tries and the exception instance;
-    This is primarily intended to give the opportunity to log the failure.
-    Hook is not called after failure if no retries remain.
-
 
     Returns
     -------
-    [type]
-        [description]
+    Callable
+        Decorator function
 
     Raises
     ------
     ValueError
-        If the `backoff` multiplication factor is less than 1.
+        If the :code:`backoff` multiplication factor is less than 1.
     ValueError
-        If the number of `attempts` is less than 0.
+        If the number of :code:`attempts` is less than 0.
     ValueError
-        If the initial `delay` is less than or equal to 0.
+        If the initial :code:`delay` is less than or equal to 0.
     """
 
     if backoff <= 1:

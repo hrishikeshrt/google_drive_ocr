@@ -98,15 +98,36 @@ class GoogleOCRApplication:
         creds = self.get_credentials()
         self.drive_service = build("drive", "v3", credentials=creds)
 
-    def get_output_path(self, img_path):
+    def get_output_path(self, img_path: str) -> str:
+        """Get the output path
+
+        Output path is constructed by replacing the extension
+        in :code:`img_path` with :code:`ocr_suffix`
+
+        Parameters
+        ----------
+        img_path : str
+            Path to the input image file
+
+        Returns
+        -------
+        str
+            Output path
+        """
         _img_path, _ = os.path.splitext(img_path)
         return f"{_img_path}{self.ocr_suffix}"
 
-    def get_credentials(self):
+    def get_credentials(self) -> Credentials:
         """Get valid user credentials
 
-        If no (valid) credentials are available, log the user in and store
-        the credentials for future use
+        If no (valid) credentials are available,
+        * Log the user in
+        * Store the credentials for future use
+
+        Returns
+        -------
+        Credentials or None
+            Valid user credentials
         """
         if os.path.isfile(self.credentials_path):
             creds = Credentials.from_authorized_user_file(
@@ -138,8 +159,19 @@ class GoogleOCRApplication:
     # Drive Actions
 
     @retry()
-    def upload_image_as_document(self, img_path):
-        """Upload an image file as a Google Document"""
+    def upload_image_as_document(self, img_path: str) -> str:
+        """Upload an image file as a Google Document
+
+        Parameters
+        ----------
+        img_path : str
+            Path to the image file
+
+        Returns
+        -------
+        str
+            ID of the uploaded Google document
+        """
         img_filename = os.path.basename(img_path)
         mimetype, _encoding = mimetypes.guess_type(img_path)
 
@@ -163,8 +195,16 @@ class GoogleOCRApplication:
         return file_id
 
     @retry()
-    def download_document_as_text(self, file_id, output_path):
-        """Download a Google Document as text"""
+    def download_document_as_text(self, file_id: str, output_path: str):
+        """Download a Google Document as text
+
+        Parameters
+        ----------
+        file_id : str
+            ID of the Google document
+        output_path : str
+            Path to where the document should be downloaded
+        """
         request = self.drive_service.files().export_media(
             fileId=file_id, mimeType="text/plain"
         )
@@ -176,12 +216,18 @@ class GoogleOCRApplication:
         LOGGER.info(f"Document downloaded: '{output_path}'.")
 
     @retry()
-    def delete_file(self, file_id):
-        """Delete a file from Google Drive"""
+    def delete_file(self, file_id: str):
+        """Delete a file from Google Drive
+
+        Parameters
+        ----------
+        file_id : str
+            ID of the file on Google Drive to be deleted
+        """
         self.drive_service.files().delete(fileId=file_id).execute()
         LOGGER.info(f"File '{file_id}' deleted from Google Drive.")
 
-    def perform_ocr(self, img_path, output_path=None):
+    def perform_ocr(self, img_path: str, output_path: str = None) -> Status:
         """
         Perform OCR on a single image
 
@@ -225,14 +271,25 @@ class GoogleOCRApplication:
 
         return Status.SUCCESS
 
-    def _worker_ocr_batch(self, worker_arguments):
-        """Perform OCR on multiple files"""
+    def _worker_ocr_batch(self, worker_arguments: dict) -> float:
+        """Worker to perform OCR on multiple files
+
+        Parameters
+        ----------
+        worker_arguments : dict
+            Arguments for the worker
+
+        Returns
+        -------
+        float
+            Time taken in seconds
+        """
         process = mp.current_process()
         worker_id = worker_arguments["worker_id"]
         image_files = worker_arguments["image_files"]
         disable_tqdm = worker_arguments.get("disable_tqdm")
         LOGGER.info(f"Process started. (PID: {process.pid})")
-        t_start = time.time()
+        t_start = time.perf_counter()
         with logging_redirect_tqdm():
             for image_file in tqdm(
                 natsorted(image_files),
@@ -244,13 +301,30 @@ class GoogleOCRApplication:
                 if status == Status.ERROR:
                     LOGGER.info(f"{status.value} ('{image_file}')")
 
-        t_finish = time.time()
+        t_finish = time.perf_counter()
         t_total = (t_finish - t_start)
         LOGGER.info(f"Process complete. (PID: {process.pid})")
         return t_total
 
-    def perform_ocr_batch(self, image_files, workers=1, disable_tqdm=None):
-        """Perform OCR on multiple files"""
+    def perform_ocr_batch(
+        self,
+        image_files: list,
+        workers: int = 1,
+        disable_tqdm: bool = None
+    ):
+        """Perform OCR on multiple files
+
+        Parameters
+        ----------
+        image_files : list
+            List of paths to image files
+        workers : int, optional
+            Number of workers
+            The default is 1.
+        disable_tqdm : bool, optional
+            If True, the progress bars from :code:`tqdm` will be disabled.
+            The default is None.
+        """
         image_files = natsorted(image_files)
         file_count = len(image_files)
 
