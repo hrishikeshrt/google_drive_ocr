@@ -55,6 +55,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/hrishikeshrt/google_drive_ocr',
-    version='0.2.5',
+    version='0.2.6',
     zip_safe=False,
 )
