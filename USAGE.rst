@@ -23,13 +23,13 @@ Perform OCR on mupltiple images:
 
 .. code-block:: python
 
-    app.perform_batch_ocr(['image_1.png', 'image_2.png', 'image_3.png'])
+    app.perform_ocr_batch(['image_1.png', 'image_2.png', 'image_3.png'])
 
 Perform OCR on multiple images using multiple workers (:code:`multiprocessing`):
 
 .. code-block:: python
 
-    app.perform_batch_ocr(['image_1.png', 'image_3.png', 'image_2.png'], workers=2)
+    app.perform_ocr_batch(['image_1.png', 'image_3.png', 'image_2.png'], workers=2)
 
 
 Using Command Line Interface
